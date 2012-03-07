@@ -8,6 +8,8 @@ from armstrong.hatband import widgets
 from .models import RelatedContent
 from .models import RelatedType
 
+from armstrong.hatband.utils import static_url
+
 
 """
 Setting ARMSTRONG_RELATED_TYPE_DEFAULT_FILTER allows you to specify
@@ -19,12 +21,10 @@ RELATED_TYPE_INITIAL_FILTER = "ARMSTRONG_RELATED_TYPE_INITIAL_FILTER"
 class RelatedContentInlineForm(forms.ModelForm):
     class Meta:
         widgets = {
-            "destination_type": forms.HiddenInput(),
-            "destination_id": widgets.GenericKeyWidget(
+            "destination_id": widgets.RawGenericKeyWidget(
                 object_id_name="destination_id",
                 content_type_name="destination_type",
             ),
-            "order": forms.HiddenInput(),
         }
 
 
@@ -33,8 +33,7 @@ class RelatedContentInline(GenericTabularInline):
     ct_fk_field = "source_id"
 
     model = RelatedContent
-    template = "admin/edit_inline/generickey.html"
-
+    template = 'admin/edit_inline/related_content.html'
     form = RelatedContentInlineForm
 
     def formfield_for_foreignkey(self, *args, **kwargs):
