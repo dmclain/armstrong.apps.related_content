@@ -33,7 +33,7 @@
           {% for fieldset in inline_admin_form %}
             {% for line in fieldset %}
               {% for field in line %}
-                {% if field.is_hidden %} {{ field.field }} {% endif %}
+                {% if field.field.is_hidden %} {{ field.field }} {% endif %}
               {% endfor %}
             {% endfor %}
           {% endfor %}
@@ -42,14 +42,16 @@
         {% for fieldset in inline_admin_form %}
           {% for line in fieldset %}
             {% for field in line %}
-              <td class="{{ field.field.name }}">
-              {% if field.is_readonly %}
-                  <p>{{ field.contents }}</p>
-              {% else %}
-                  {{ field.field.errors.as_ul }}
-                  {{ field.field }}
+              {% if not field.field.is_hidden %}
+                <td class="{{ field.field.name }}">
+                {% if field.is_readonly %}
+                    <p>{{ field.contents }}</p>
+                {% else %}
+                    {{ field.field.errors.as_ul }}
+                    {{ field.field }}
+                {% endif %}
+                </td>
               {% endif %}
-              </td>
             {% endfor %}
           {% endfor %}
         {% endfor %}
@@ -116,6 +118,11 @@
               row.find('td.destination_id a')
           );
         }
+        var reorder = function(){
+            $(rows).each(function(idx, el) {
+                $(el).find("[id$=order]").val(idx);
+            })
+        }
         $(rows).formset({
             prefix: "{{ inline_admin_formset.formset.prefix }}",
             addText: "{% blocktrans with inline_admin_formset.opts.verbose_name|title as verbose_name %}Add another {{ verbose_name }}{% endblocktrans %}",
@@ -130,8 +137,13 @@
                 updateSelectFilter();
                 alternatingRows(row);
                 rawGenericKey(row);
+                reorder();
             })
         });
+        $(rows).parent().sortable();
+        $(rows).parent().bind('sortupdate', reorder);
+        $(rows).parent().bind('sortupdate', alternatingRows);
+        reorder();
     });
 })(django.jQuery);
 </script>
