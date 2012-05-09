@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.generic import GenericTabularInline
+from django.forms import widgets as django_widgets
 
 from armstrong.hatband import widgets
 
@@ -19,12 +20,19 @@ RELATED_TYPE_INITIAL_FILTER = "ARMSTRONG_RELATED_TYPE_INITIAL_FILTER"
 
 
 class RelatedContentInlineForm(forms.ModelForm):
+
+    class Media:
+        js = (
+            'hatband/js/jquery-ui-1.8.16.min.js',
+          )
+
     class Meta:
         widgets = {
             "destination_id": widgets.RawGenericKeyWidget(
                 object_id_name="destination_id",
                 content_type_name="destination_type",
             ),
+            "order": django_widgets.HiddenInput(),
         }
 
 
@@ -35,6 +43,8 @@ class RelatedContentInline(GenericTabularInline):
     model = RelatedContent
     template = 'admin/edit_inline/related_content.html'
     form = RelatedContentInlineForm
+
+    extra = 0
 
     def formfield_for_foreignkey(self, *args, **kwargs):
         args, kwargs = formfield_for_foreignkey_helper(self, *args, **kwargs)
