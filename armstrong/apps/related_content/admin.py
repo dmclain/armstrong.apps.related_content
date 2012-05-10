@@ -77,4 +77,18 @@ def formfield_for_foreignkey_helper(inline, *args, **kwargs):
     return args, kwargs
 
 
+def related_content_inline_factory(allowed_types=None, allowed_content_types=None):
+    custom_widgets = RelatedContentInlineForm.Meta.widgets.copy()
+    custom_widgets.update({
+            #"related_type": django_widgets.HiddenInput(),
+        })
+    class CustomRelatedContentInlineForm(RelatedContentInlineForm):
+        class Meta(RelatedContentInlineForm.Meta):
+            widgets = custom_widgets
+
+    class CustomRelatedContentInline(RelatedContentInline):
+        form = CustomRelatedContentInlineForm
+
+    return CustomRelatedContentInline
+
 admin.site.register(RelatedType)
