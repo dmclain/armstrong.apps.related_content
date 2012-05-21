@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.generic import GenericTabularInline
+from django.contrib.contenttypes.models import ContentType
 from django.forms import widgets as django_widgets
 
 from armstrong.hatband import widgets
@@ -78,13 +79,29 @@ def formfield_for_foreignkey_helper(inline, *args, **kwargs):
 
 
 def related_content_inline_factory(allowed_types=None, allowed_content_types=None):
-    custom_widgets = RelatedContentInlineForm.Meta.widgets.copy()
-    custom_widgets.update({
-            #"related_type": django_widgets.HiddenInput(),
-        })
+    #custom_widgets = RelatedContentInlineForm.Meta.widgets.copy()
+    #custom_widgets.update({
+    #        "related_type": django_widgets.HiddenInput(),
+    #    })
+
+    if allowed_types is None:
+        type_qs = RelatedType.objects.all()
+    else:
+        type_qs = RelatedType.objects.filter(title__in=allowed_types)
+
+    if allowed_content_types is None:
+        content_type_qs = ContentType.objects.all()
+    else:
+        content_type_qs = ContentType.objects.filter(name__in=allowed_content_types)
+
+
     class CustomRelatedContentInlineForm(RelatedContentInlineForm):
-        class Meta(RelatedContentInlineForm.Meta):
-            widgets = custom_widgets
+        related_type = forms.ModelChoiceField(label="Related Type",
+                queryset=type_qs)
+        destination_type = forms.ModelChoiceField(label="Destination Type",
+                queryset=content_type_qs)
+        #class Meta(RelatedContentInlineForm.Meta):
+            #widgets = custom_widgets
 
     class CustomRelatedContentInline(RelatedContentInline):
         form = CustomRelatedContentInlineForm
