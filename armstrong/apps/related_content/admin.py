@@ -79,29 +79,31 @@ def formfield_for_foreignkey_helper(inline, *args, **kwargs):
 
 
 def related_content_inline_factory(allowed_types=None, allowed_content_types=None):
-    #custom_widgets = RelatedContentInlineForm.Meta.widgets.copy()
-    #custom_widgets.update({
-    #        "related_type": django_widgets.HiddenInput(),
-    #    })
-
+    related_type_kwargs = {
+        "label": "Related Type"
+    }
     if allowed_types is None:
-        type_qs = RelatedType.objects.all()
+        related_type_kwargs['queryset'] = RelatedType.objects.all()
     else:
-        type_qs = RelatedType.objects.filter(title__in=allowed_types)
+        related_type_kwargs['queryset'] = RelatedType.objects.filter(title__in=allowed_types)
+    if len(related_type_kwargs['queryset']) == 1:
+        related_type_kwargs['initial'] = related_type_kwargs['queryset'][0]
+        related_type_kwargs['widget'] = django_widgets.HiddenInput()
 
-    if allowed_content_types is None:
-        content_type_qs = ContentType.objects.all()
+    destination_type_kwargs = {
+        "label": "Destination Type"
+    }
+    if allowed_types is None:
+        destination_type_kwargs['queryset'] = ContentType.objects.all()
     else:
-        content_type_qs = ContentType.objects.filter(name__in=allowed_content_types)
-
+        destination_type_kwargs['queryset'] = ContentType.objects.filter(name__in=allowed_content_types)
+    if len(destination_type_kwargs['queryset']) == 1:
+        destination_type_kwargs['initial'] = destination_type_kwargs['queryset'][0]
+        destination_type_kwargs['widget'] = django_widgets.HiddenInput()
 
     class CustomRelatedContentInlineForm(RelatedContentInlineForm):
-        related_type = forms.ModelChoiceField(label="Related Type",
-                queryset=type_qs)
-        destination_type = forms.ModelChoiceField(label="Destination Type",
-                queryset=content_type_qs)
-        #class Meta(RelatedContentInlineForm.Meta):
-            #widgets = custom_widgets
+        related_type = forms.ModelChoiceField(**related_type_kwargs)
+        destination_type = forms.ModelChoiceField(**destination_type_kwargs)
 
     class CustomRelatedContentInline(RelatedContentInline):
         form = CustomRelatedContentInlineForm
