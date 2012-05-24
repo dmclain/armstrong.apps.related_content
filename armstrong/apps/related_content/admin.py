@@ -93,7 +93,7 @@ def related_content_inline_factory(allowed_types=None, allowed_content_types=Non
     destination_type_kwargs = {
         "label": "Destination Type"
     }
-    if allowed_types is None:
+    if allowed_content_types is None:
         destination_type_kwargs['queryset'] = ContentType.objects.all()
     else:
         destination_type_kwargs['queryset'] = ContentType.objects.filter(name__in=allowed_content_types)
