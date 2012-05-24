@@ -1,10 +1,11 @@
 from django.db.models import ForeignKey
+from django.contrib.contenttypes.models import ContentType
 import fudge
 import random
 from ._utils import TestCase
 
 from .. import admin
-from ..models import RelatedContent
+from ..models import RelatedContent, RelatedType
 from ..admin import formfield_for_foreignkey_helper
 
 
@@ -118,3 +119,32 @@ class RelatedContentInlineTestCase(TestCase):
                 returned_kwargs = ret[1]
         self.assertTrue("initial" in returned_kwargs)
         self.assertEqual(returned_kwargs["initial"], expected_return)
+
+class CustomRelatedContentInlineTestCase(TestCase):
+    def setUp(self):
+        RelatedType.objects.create(title='rc1')
+        RelatedType.objects.create(title='rc2')
+        RelatedType.objects.create(title='rc3')
+        RelatedType.objects.create(title='rc4')
+
+    def test_rc_type_is_filtered(self):
+        rc_inline = admin.related_content_inline_factory(allowed_types=('rc1', 'rc2'))
+        related_type_field = rc_inline.form.declared_fields['related_type']
+        self.assertEqual(2, len(related_type_field.choices))
+
+    def test_content_type_is_filtered(self):
+        rc_inline = admin.related_content_inline_factory(allowed_content_types=('article', 'image'))
+        content_type_field = rc_inline.form.declared_fields['destination_type']
+        self.assertEqual(2, len(content_type_field.choices))
+
+    def test_rc_type_one_choice_has_hidden(self):
+        rc_inline = admin.related_content_inline_factory(allowed_types=('rc1',))
+        related_type_field = rc_inline.form.declared_fields['related_type']
+        self.assertEqual(1, len(related_type_field.choices))
+        self.assertTrue(related_type_field.widget.is_hidden)
+
+    def test_content_type_one_choice_has_hidden(self):
+        rc_inline = admin.related_content_inline_factory(allowed_content_types=('article',))
+        content_type_field = rc_inline.form.declared_fields['destination_type']
+        self.assertEqual(1, len(content_type_field.choices))
+        self.assertTrue(content_type_field.widget.is_hidden)
